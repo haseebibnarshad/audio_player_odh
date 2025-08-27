@@ -21,19 +21,25 @@ export const VolumeControl = ({ volume, onVolumeChange, isMuted, onMuteToggle }:
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        if (!isDragging) setShowSlider(false);
+        if (!isDragging) {
+          setShowSlider(false);
+        }
       }
     };
 
     if (showSlider) {
-      document.addEventListener('mousedown', handleClickOutside as EventListener);
-      document.addEventListener('touchstart', handleClickOutside as EventListener);
+      // Add a small delay to prevent immediate closing when opening
+      const timeoutId = setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside as EventListener);
+        document.addEventListener('touchstart', handleClickOutside as EventListener);
+      }, 100);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        document.removeEventListener('mousedown', handleClickOutside as EventListener);
+        document.removeEventListener('touchstart', handleClickOutside as EventListener);
+      };
     }
-    
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside as EventListener);
-      document.removeEventListener('touchstart', handleClickOutside as EventListener);
-    };
   }, [showSlider, isDragging]);
 
   // Calculate volume from position
@@ -94,9 +100,6 @@ export const VolumeControl = ({ volume, onVolumeChange, isMuted, onMuteToggle }:
     <div 
       ref={containerRef}
       className="relative group"
-      onMouseEnter={() => !isMobile && setShowSlider(true)}
-      onMouseLeave={() => !isMobile && !isDragging && setShowSlider(false)}
-      onClick={(e) => isMobile && setShowSlider(!showSlider)}
     >
       <Button
         variant="ghost"
@@ -104,6 +107,10 @@ export const VolumeControl = ({ volume, onVolumeChange, isMuted, onMuteToggle }:
         className="relative z-10 neumorphic rounded-xl text-foreground transition-all duration-300 hover:scale-110 hover:text-primary hover:glow-primary group/button"
         onClick={(e) => {
           e.stopPropagation();
+          setShowSlider(!showSlider);
+        }}
+        onContextMenu={(e) => {
+          e.preventDefault();
           onMuteToggle();
         }}
       >
@@ -111,13 +118,13 @@ export const VolumeControl = ({ volume, onVolumeChange, isMuted, onMuteToggle }:
       </Button>
 
       <AnimatePresence>
-        {(showSlider || isMobile) && (
+        {showSlider && (
           <motion.div
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 z-50"
+            className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50"
           >
             <div className="glass-morphism rounded-2xl p-4 shadow-xl backdrop-blur-xl">
               <div

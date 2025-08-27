@@ -110,6 +110,7 @@ export const MusicPlayer = () => {
   
   // Tooltip states
   const [hoveredControl, setHoveredControl] = useState<string | null>(null);
+
   const [hoverProgress, setHoverProgress] = useState<{show: boolean; time: number; position: number}>({
     show: false,
     time: 0,
@@ -370,7 +371,7 @@ export const MusicPlayer = () => {
           variant="outline"
           size="icon"
           className="glass-morphism border-glass-border hover:glow-primary transition-smooth"
-          onClick={() => setShowPlaylist(true)}
+          onClick={() => setShowPlaylist(!showPlaylist)}
         >
           <List className="h-4 w-4" />
         </Button>
